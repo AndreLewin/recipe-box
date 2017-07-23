@@ -1,10 +1,23 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
-var App = require('./components/App');
+const React = require('react');
+const ReactDOM = require('react-dom');
 
 import './index.sass';
 
+
+function App() {
+    return (
+		<div>
+			<h1>WIP: Recipe box</h1>
+			<div className="well panel">
+
+
+			</div>
+			<button />
+		</div>
+    );
+}
+
 ReactDOM.render(
-	<App />, 
+	<App />,
 	document.getElementById('app')
 );

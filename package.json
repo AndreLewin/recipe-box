@@ -1,8 +1,10 @@
 {
   "name": "recipe-box",
   "version": "0.1.0",
+  "description": "React Bootstrap Recipe Box for Free Code Camp",
   "dependencies": {
     "react": "^15.6.1",
+    "react-bootstrap": "^0.31.1",
     "react-dom": "^15.6.1"
   },
   "devDependencies": {
@@ -20,5 +22,9 @@
   "scripts": {
     "build": "webpack",
     "start": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/AndreLewin/recipe-box.git"
   }
 }
