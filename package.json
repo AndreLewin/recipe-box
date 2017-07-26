@@ -3,8 +3,6 @@
   "version": "0.1.0",
   "description": "React Bootstrap Recipe Box for Free Code Camp",
   "dependencies": {
-    "bootstrap": "^3.3.7",
-    "jquery": "^3.2.1",
     "react": "^15.6.1",
     "react-bootstrap": "^0.31.1",
     "react-dom": "^15.6.1"
