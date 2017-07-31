@@ -46,7 +46,6 @@ class Recipe extends React.Component {
 
 
 class RecipeList extends React.Component {
-
     render() {
         const listRecipes = this.props.recipes.map(function(recipe, index) {
             return (
@@ -64,11 +63,11 @@ class RecipeList extends React.Component {
 
 class App extends React.Component {
     constructor(){
-        // TODO: look if local storage, if not use the default
         super();
 
         this.state = {
-            recipes: defaultRecipes
+            // Note: no check if the item in localStorage is an array
+            recipes: (localStorage.getItem('recipes') !== null) ? JSON.parse(localStorage.getItem('recipes')) : defaultRecipes
         };
     }
 
@@ -85,7 +84,7 @@ class App extends React.Component {
     }
 
     render() {
-        // TODO: save new data from local storage
+        localStorage.setItem('recipes', JSON.stringify(this.state.recipes));
 
         return (
             <div className="container">
