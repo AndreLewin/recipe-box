@@ -46,21 +46,9 @@ class Recipe extends React.Component {
 
 
 class RecipeList extends React.Component {
-    constructor() {
-        super();
-
-        // TODO: get data from local storage
-        // If no data, use a template
-
-        this.state = {
-            recipes: defaultRecipes
-        };
-    }
 
     render() {
-        // TODO: save new data from local storage
-
-        const listRecipes = this.state.recipes.map(function(recipe, index) {
+        const listRecipes = this.props.recipes.map(function(recipe, index) {
             return (
                 <Recipe name={recipe.name} ingredients={recipe.ingredients}/>
             );
@@ -75,15 +63,38 @@ class RecipeList extends React.Component {
 
 
 class App extends React.Component {
+    constructor(){
+        // TODO: look if local storage, if not use the default
+        super();
+
+        this.state = {
+            recipes: defaultRecipes
+        };
+    }
+
+    handleAddClick() {
+        this.setState({
+            recipes: this.state.recipes.concat({"name": "pushed", "ingredients": ["hope"]})
+        });
+    }
+
+    handleRemoveClick() {
+        this.setState({
+            recipes: this.state.recipes.slice(0, this.state.recipes.length-1)
+        });
+    }
 
     render() {
+        // TODO: save new data from local storage
+
         return (
             <div className="container">
                 <h1>WIP: Recipe box</h1>
                 <div className="well panel panel-default">
-                    <RecipeList />
+                    <RecipeList recipes={this.state.recipes} />
                 </div>
-                <button className="btn btn-primary">Add recipe</button>
+                <button onClick={(i) => this.handleAddClick(i)} className="btn btn-primary">Add recipe</button>
+                <button onClick={(i) => this.handleRemoveClick(i)} className="btn btn-primary">Remove recipe</button>
             </div>
         );
     }
