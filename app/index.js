@@ -1,10 +1,66 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
-import { Button, Panel, Accordion } from 'react-bootstrap';
+import { Button, Panel, Modal, OverlayTrigger, FieldGroup, FormGroup, FormControl, ControlLabel } from 'react-bootstrap';
 
 import './index.sass';
 import defaultRecipes from './defaultRecipes.json';
 
+
+class AddButtonAddModal extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state =
+            {
+                showModal: this.props.showModal
+            };
+    }
+
+    close() {
+        this.setState({ showModal: false });
+    }
+
+    open() {
+        this.setState({ showModal: true });
+    }
+
+    // TODO: Create a submit button to get the value of the fields
+    render() {
+        return (
+            <div>
+                <button className="btn btn-primary" onClick={() => this.open()}>Add recipe</button>
+
+                <Modal show={this.state.showModal} onHide={() => this.close()}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Add a recipe</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <form>
+                            <FormGroup>
+                                <ControlLabel>Enter the name of the recipe</ControlLabel>
+                                <FormControl
+                                    type="text"
+                                    value={this.state.recipeName}
+                                    placeholder="Recipe name"
+                                />
+                            </FormGroup>
+                            <FormGroup>
+                                <ControlLabel>Enter the ingredients separated by commas</ControlLabel>
+                                <FormControl
+                                    type="text"
+                                    value={this.state.ingredients}
+                                    placeholder="Ingredient 1, Ingredient 2, Ingredient 3"
+                                />
+                            </FormGroup>
+                        </form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button onClick={() => this.close()}>Close</Button>
+                    </Modal.Footer>
+                </Modal>
+            </div>
+        );
+    }
+}
 
 
 class Recipe extends React.Component {
@@ -67,15 +123,21 @@ class App extends React.Component {
 
         this.state = {
             // Note: no check if the item in localStorage is an array
-            recipes: (localStorage.getItem('recipes') !== null) ? JSON.parse(localStorage.getItem('recipes')) : defaultRecipes
+            recipes: (localStorage.getItem('recipes') !== null) ? JSON.parse(localStorage.getItem('recipes')) : defaultRecipes,
+            showModal: true,
         };
     }
 
+    // TODO: Convert to handleSubmitClick, give to the modal as prop
+    /*
     handleAddClick() {
         this.setState({
-            recipes: this.state.recipes.concat({"name": "pushed", "ingredients": ["hope"]})
+            showModal: true,
+            // recipes: this.state.recipes.concat({"name": "pushed", "ingredients": ["hope"]})
         });
+        console.log(this.state.showModal);
     }
+    */
 
     handleRemoveClick() {
         this.setState({
@@ -92,13 +154,14 @@ class App extends React.Component {
                 <div className="well panel panel-default">
                     <RecipeList recipes={this.state.recipes} />
                 </div>
-                <button onClick={(i) => this.handleAddClick(i)} className="btn btn-primary">Add recipe</button>
+                <AddButtonAddModal showModal={this.state.showModal} />
                 <button onClick={(i) => this.handleRemoveClick(i)} className="btn btn-primary">Remove recipe</button>
             </div>
         );
     }
 
 }
+
 
 ReactDOM.render(
 	<App />,
