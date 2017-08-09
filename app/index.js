@@ -13,6 +13,14 @@ class AddButtonAddModal extends React.Component {
             {
                 showModal: this.props.showModal
             };
+
+        // JS does not bind methods by default, so we have to define this.close
+        // Binding to "this" is necessary so we can refer to the methods in onClick={this.method}
+        // Note: This is the recommended way in the react tutorial. It is possible to do onClick={() => this.open()}
+        this.close = this.close.bind(this);
+        this.open = this.open.bind(this);
+        this.handleRecipeNameChange = this.handleRecipeNameChange.bind(this);
+        this.handleIngredientsStringChange = this.handleIngredientsStringChange.bind(this);
     }
 
     close() {
@@ -23,13 +31,22 @@ class AddButtonAddModal extends React.Component {
         this.setState({ showModal: true });
     }
 
-    // TODO: Create a submit button to get the value of the fields
+    handleRecipeNameChange(event) {
+        this.setState({ recipeNameString: event.target.value });
+    }
+
+    handleIngredientsStringChange(event) {
+        this.setState({ ingredientsString: event.target.value });
+    }
+
     render() {
+        // TODO: Understand why the arrow function is necessary in () => this.props.handleAddRecipeSubmitClick
+        // TODO: Try to bind it. Why not using it is like an infinite loop?
         return (
             <div>
-                <button className="btn btn-primary" onClick={() => this.open()}>Add recipe</button>
+                <button className="btn btn-primary" onClick={this.open}>Add recipe</button>
 
-                <Modal show={this.state.showModal} onHide={() => this.close()}>
+                <Modal show={this.state.showModal} onHide={this.close}>
                     <Modal.Header closeButton>
                         <Modal.Title>Add a recipe</Modal.Title>
                     </Modal.Header>
@@ -39,22 +56,23 @@ class AddButtonAddModal extends React.Component {
                                 <ControlLabel>Enter the name of the recipe</ControlLabel>
                                 <FormControl
                                     type="text"
-                                    value={this.state.recipeName}
                                     placeholder="Recipe name"
+                                    onChange={this.handleRecipeNameChange}
                                 />
                             </FormGroup>
                             <FormGroup>
                                 <ControlLabel>Enter the ingredients separated by commas</ControlLabel>
                                 <FormControl
                                     type="text"
-                                    value={this.state.ingredients}
                                     placeholder="Ingredient 1, Ingredient 2, Ingredient 3"
+                                    onChange={this.handleIngredientsStringChange}
                                 />
                             </FormGroup>
                         </form>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button onClick={() => this.close()}>Close</Button>
+                        <Button onClick={() => this.props.handleAddRecipeSubmitClick(this.state.recipeNameString, this.state.ingredientsString)}>Submit the recipe</Button>
+                        <Button onClick={this.close}>Close</Button>
                     </Modal.Footer>
                 </Modal>
             </div>
@@ -62,13 +80,25 @@ class AddButtonAddModal extends React.Component {
     }
 }
 
+//                         <Button onClick={() => { console.log(this.state.recipeNameString); this.props.handleAddRecipeSubmitClick(this.state.recipeNameString, this.state.ingredientsString) ; this.close() } }>Submit the recipe</Button>
+
 
 class Recipe extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             open: false,
         };
+
+        this.handleClickOpenClose = this.handleClickOpenClose.bind(this);
+    }
+
+    handleClickOpenClose(event) {
+        this.setState(
+            (prevState, props) => ({
+                open: !prevState.open
+            })
+        );
     }
 
     render() {
@@ -82,7 +112,7 @@ class Recipe extends React.Component {
                 <div className="panel panel-success">
                     <div className="panel-heading">
                         <h4 className="panel-title">
-                            <Button onClick={ ()=> this.setState({ open: !this.state.open })}>{this.props.name}</Button>
+                            <Button onClick={this.handleClickOpenClose}>{this.props.name}</Button>
                         </h4>
                     </div>
                     <Panel collapsible expanded={this.state.open}>
@@ -118,31 +148,34 @@ class RecipeList extends React.Component {
 
 
 class App extends React.Component {
-    constructor(){
-        super();
-
+    constructor(props) { // React official documentation recommends to always pass props to the constructor (why?)
+        super(props);
         this.state = {
+            // TODO: Idea: Add a state for new recipe, that is updated by a function passed to check the field
+            // TODO, that way, the recipe can be added to the list
+            // TODO, the submit handler should also be passed
             // Note: no check if the item in localStorage is an array
             recipes: (localStorage.getItem('recipes') !== null) ? JSON.parse(localStorage.getItem('recipes')) : defaultRecipes,
             showModal: true,
         };
+
+        this.handleAddRecipeSubmitClick = this.handleAddRecipeSubmitClick.bind(this);
+        this.handleRemoveClick = this.handleRemoveClick.bind(this);
     }
 
-    // TODO: Convert to handleSubmitClick, give to the modal as prop
-    /*
-    handleAddClick() {
-        this.setState({
-            showModal: true,
-            // recipes: this.state.recipes.concat({"name": "pushed", "ingredients": ["hope"]})
-        });
-        console.log(this.state.showModal);
+    // TODO: change the ingredient string to an array
+    handleAddRecipeSubmitClick(nameString, ingredientsString) {
+        console.log(nameString);
+        this.setState((prevState, props) => ({
+            recipes: prevState.recipes.concat({"name": nameString, "ingredients": [ingredientsString]})
+        }));
+
     }
-    */
 
     handleRemoveClick() {
-        this.setState({
-            recipes: this.state.recipes.slice(0, this.state.recipes.length-1)
-        });
+        this.setState((prevState, props) => ({
+            recipes: prevState.recipes.slice(0, this.state.recipes.length-1)
+        }));
     }
 
     render() {
@@ -154,8 +187,8 @@ class App extends React.Component {
                 <div className="well panel panel-default">
                     <RecipeList recipes={this.state.recipes} />
                 </div>
-                <AddButtonAddModal showModal={this.state.showModal} />
-                <button onClick={(i) => this.handleRemoveClick(i)} className="btn btn-primary">Remove recipe</button>
+                <AddButtonAddModal showModal={this.state.showModal} handleAddRecipeSubmitClick={this.handleAddRecipeSubmitClick}/>
+                <button onClick={this.handleRemoveClick} className="btn btn-primary">Remove recipe</button>
             </div>
         );
     }
