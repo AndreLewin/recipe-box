@@ -6,85 +6,6 @@ import './index.sass';
 import defaultRecipes from './defaultRecipes.json';
 
 
-class AddButtonAddModal extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state =
-            {
-                showModal: this.props.showModal,
-                recipeNameString: undefined,
-                ingredientsString: undefined
-            };
-
-        // JS does not bind methods by default, so we have to define this.close
-        // Binding to "this" is necessary so we can refer to the methods in onClick={this.method}
-        // Note: This is the recommended way in the react tutorial. It is possible to do onClick={() => this.open()}
-        this.close = this.close.bind(this);
-        this.open = this.open.bind(this);
-        this.handleFormControlChange = this.handleFormControlChange.bind(this);
-        this.handleAddRecipeSubmitClick = this.handleAddRecipeSubmitClick.bind(this);
-    }
-
-    close() {
-        this.setState({ showModal: false });
-    }
-
-    open() {
-        this.setState({ showModal: true });
-    }
-
-    handleFormControlChange(event) {
-        this.setState({ [event.target.name] : event.target.value });
-    }
-
-    handleAddRecipeSubmitClick() {
-        // Change the string of ingredients into an array for the root component
-        const ingredientsArray = this.state.ingredientsString.split(",");
-        this.props.handleAddRecipeSubmitClick(this.state.recipeNameString, ingredientsArray);
-    }
-
-    render() {
-        return (
-            <div>
-                <button className="btn btn-primary" onClick={this.open}>Add recipe</button>
-
-                <Modal show={this.state.showModal} onHide={this.close}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Add a recipe</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <form>
-                            <FormGroup>
-                                <ControlLabel>Enter the name of the recipe</ControlLabel>
-                                <FormControl
-                                    name="recipeNameString"
-                                    type="text"
-                                    placeholder="Recipe name"
-                                    onChange={this.handleFormControlChange}
-                                />
-                            </FormGroup>
-                            <FormGroup>
-                                <ControlLabel>Enter the ingredients separated by commas</ControlLabel>
-                                <FormControl
-                                    name="ingredientsString"
-                                    type="text"
-                                    placeholder="Ingredient 1, Ingredient 2, Ingredient 3"
-                                    onChange={this.handleFormControlChange}
-                                />
-                            </FormGroup>
-                        </form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button onClick={this.handleAddRecipeSubmitClick}>Submit the recipe</Button>
-                        <Button onClick={this.close}>Close</Button>
-                    </Modal.Footer>
-                </Modal>
-            </div>
-        );
-    }
-}
-
-
 class Recipe extends React.Component {
     constructor(props) {
         super(props);
@@ -106,7 +27,7 @@ class Recipe extends React.Component {
     render() {
         const listIngredients = this.props.ingredients.map(function(ingredient, index) {
             return (
-                <li key={ingredient} className="list-group-item">{ingredient}</li>
+                <li className="list-group-item">{ingredient}</li>
             );
         });
 
@@ -147,6 +68,66 @@ class RecipeList extends React.Component {
 }
 
 
+class RecipeModal extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.close = this.close.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmitClick = this.handleSubmitClick.bind(this);
+    }
+
+    close() {
+        this.props.onClosing();
+    }
+
+    handleChange(event) {
+        this.props.onFieldChange(event.target.name, event.target.value);
+    }
+
+    handleSubmitClick() {
+        this.props.onSubmitClick();
+    }
+
+    render() {
+
+        return (
+            <Modal show={this.props.showModal} onHide={this.close}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add a recipe</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <form>
+                        <FormGroup>
+                            <ControlLabel>Enter the name of the recipe</ControlLabel>
+                            <FormControl
+                                name="recipeString"
+                                type="text"
+                                placeholder="Recipe name"
+                                onChange={this.handleChange}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <ControlLabel>Enter the ingredients separated by commas</ControlLabel>
+                            <FormControl
+                                name="ingredientsString"
+                                type="text"
+                                placeholder="Ingredient 1, Ingredient 2, Ingredient 3"
+                                onChange={this.handleChange}
+                            />
+                        </FormGroup>
+                    </form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button onClick={this.handleSubmitClick}>Submit the recipe</Button>
+                    <Button onClick={this.close}>Close</Button>
+                </Modal.Footer>
+            </Modal>
+        );
+    }
+}
+
+
 class App extends React.Component {
     constructor(props) { // React official documentation recommends to always pass props to the constructor (why?)
         super(props);
@@ -156,19 +137,17 @@ class App extends React.Component {
             // TODO, the submit handler should also be passed
             // Note: no check if the item in localStorage is an array
             recipes: (localStorage.getItem('recipes') !== null) ? JSON.parse(localStorage.getItem('recipes')) : defaultRecipes,
-            showModal: true,
+
+            showModal: false,
+            recipeString: undefined,
+            ingredientsString: undefined
         };
 
-        this.handleAddRecipeSubmitClick = this.handleAddRecipeSubmitClick.bind(this);
+        this.handleAddClick = this.handleAddClick.bind(this);
         this.handleRemoveClick = this.handleRemoveClick.bind(this);
-    }
-
-    handleAddRecipeSubmitClick(nameString, ingredientsArray) {
-        console.log(nameString);
-        this.setState((prevState, props) => ({
-            recipes: prevState.recipes.concat({"name": nameString, "ingredients": ingredientsArray})
-        }));
-
+        this.handleClosingModal = this.handleClosingModal.bind(this);
+        this.handleFormControlChange = this.handleFormControlChange.bind(this);
+        this.handleFormSubmit = this.handleFormSubmit.bind(this);
     }
 
     // TODO: handleRemoveRecipeClick(recipeIndex)
@@ -177,14 +156,31 @@ class App extends React.Component {
     //     recipes: prevState.recipes.slice().splice(recipeIndex,1)
 
     // TODO: handleEdit
-    // Change the modal to "Edit Modal"
-    // An id should be passed to the modal. Add recipe -> recipes.length+1 ; Edit -> the id of the recipe
-    // Change handleAddRecipeSubmitClick to handleRecipeSubmitClick
-    // It should add or edit depending on the id compared to the recipes.length
+
+    handleAddClick() {
+        this.setState({ showModal: true });
+    }
 
     handleRemoveClick() {
         this.setState((prevState, props) => ({
             recipes: prevState.recipes.slice(0, this.state.recipes.length-1)
+        }));
+    }
+
+    handleClosingModal() {
+        this.setState({ showModal: false });
+    }
+
+    handleFormControlChange(attribute, value) {
+        this.setState({ [attribute] : value });
+    }
+
+    handleFormSubmit() {
+        // Change the string of ingredients into an array for the root component
+        const ingredientsArray = this.state.ingredientsString.split(",");
+        this.setState((prevState, props) => ({
+            recipes: prevState.recipes.concat({"name": this.state.recipeString, "ingredients": ingredientsArray}),
+            showModal: false
         }));
     }
 
@@ -197,8 +193,14 @@ class App extends React.Component {
                 <div className="well panel panel-default">
                     <RecipeList recipes={this.state.recipes} />
                 </div>
-                <AddButtonAddModal showModal={this.state.showModal} handleAddRecipeSubmitClick={this.handleAddRecipeSubmitClick}/>
+                <button onClick={this.handleAddClick} className="btn btn-primary">Add recipe</button>
                 <button onClick={this.handleRemoveClick} className="btn btn-primary">Remove recipe</button>
+                <RecipeModal
+                    showModal={this.state.showModal}
+                    onClosing={this.handleClosingModal}
+                    onFieldChange={this.handleFormControlChange}
+                    onSubmitClick={this.handleFormSubmit}
+                />
             </div>
         );
     }
