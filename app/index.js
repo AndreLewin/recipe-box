@@ -11,7 +11,9 @@ class AddButtonAddModal extends React.Component {
         super(props);
         this.state =
             {
-                showModal: this.props.showModal
+                showModal: this.props.showModal,
+                recipeNameString: undefined,
+                ingredientsString: undefined
             };
 
         // JS does not bind methods by default, so we have to define this.close
@@ -19,8 +21,8 @@ class AddButtonAddModal extends React.Component {
         // Note: This is the recommended way in the react tutorial. It is possible to do onClick={() => this.open()}
         this.close = this.close.bind(this);
         this.open = this.open.bind(this);
-        this.handleRecipeNameChange = this.handleRecipeNameChange.bind(this);
-        this.handleIngredientsStringChange = this.handleIngredientsStringChange.bind(this);
+        this.handleFormControlChange = this.handleFormControlChange.bind(this);
+        this.handleAddRecipeSubmitClick = this.handleAddRecipeSubmitClick.bind(this);
     }
 
     close() {
@@ -31,17 +33,17 @@ class AddButtonAddModal extends React.Component {
         this.setState({ showModal: true });
     }
 
-    handleRecipeNameChange(event) {
-        this.setState({ recipeNameString: event.target.value });
+    handleFormControlChange(event) {
+        this.setState({ [event.target.name] : event.target.value });
     }
 
-    handleIngredientsStringChange(event) {
-        this.setState({ ingredientsString: event.target.value });
+    handleAddRecipeSubmitClick() {
+        // Change the string of ingredients into an array for the root component
+        const ingredientsArray = this.state.ingredientsString.split(",");
+        this.props.handleAddRecipeSubmitClick(this.state.recipeNameString, ingredientsArray);
     }
 
     render() {
-        // TODO: Understand why the arrow function is necessary in () => this.props.handleAddRecipeSubmitClick
-        // TODO: Try to bind it. Why not using it is like an infinite loop?
         return (
             <div>
                 <button className="btn btn-primary" onClick={this.open}>Add recipe</button>
@@ -55,23 +57,25 @@ class AddButtonAddModal extends React.Component {
                             <FormGroup>
                                 <ControlLabel>Enter the name of the recipe</ControlLabel>
                                 <FormControl
+                                    name="recipeNameString"
                                     type="text"
                                     placeholder="Recipe name"
-                                    onChange={this.handleRecipeNameChange}
+                                    onChange={this.handleFormControlChange}
                                 />
                             </FormGroup>
                             <FormGroup>
                                 <ControlLabel>Enter the ingredients separated by commas</ControlLabel>
                                 <FormControl
+                                    name="ingredientsString"
                                     type="text"
                                     placeholder="Ingredient 1, Ingredient 2, Ingredient 3"
-                                    onChange={this.handleIngredientsStringChange}
+                                    onChange={this.handleFormControlChange}
                                 />
                             </FormGroup>
                         </form>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button onClick={() => this.props.handleAddRecipeSubmitClick(this.state.recipeNameString, this.state.ingredientsString)}>Submit the recipe</Button>
+                        <Button onClick={this.handleAddRecipeSubmitClick}>Submit the recipe</Button>
                         <Button onClick={this.close}>Close</Button>
                     </Modal.Footer>
                 </Modal>
@@ -79,8 +83,6 @@ class AddButtonAddModal extends React.Component {
         );
     }
 }
-
-//                         <Button onClick={() => { console.log(this.state.recipeNameString); this.props.handleAddRecipeSubmitClick(this.state.recipeNameString, this.state.ingredientsString) ; this.close() } }>Submit the recipe</Button>
 
 
 class Recipe extends React.Component {
@@ -130,12 +132,11 @@ class Recipe extends React.Component {
 }
 
 
-
 class RecipeList extends React.Component {
     render() {
         const listRecipes = this.props.recipes.map(function(recipe, index) {
             return (
-                <Recipe name={recipe.name} ingredients={recipe.ingredients}/>
+                <Recipe key={index} name={recipe.name} ingredients={recipe.ingredients}/>
             );
         });
 
@@ -144,7 +145,6 @@ class RecipeList extends React.Component {
         );
     }
 }
-
 
 
 class App extends React.Component {
@@ -163,14 +163,24 @@ class App extends React.Component {
         this.handleRemoveClick = this.handleRemoveClick.bind(this);
     }
 
-    // TODO: change the ingredient string to an array
-    handleAddRecipeSubmitClick(nameString, ingredientsString) {
+    handleAddRecipeSubmitClick(nameString, ingredientsArray) {
         console.log(nameString);
         this.setState((prevState, props) => ({
-            recipes: prevState.recipes.concat({"name": nameString, "ingredients": [ingredientsString]})
+            recipes: prevState.recipes.concat({"name": nameString, "ingredients": ingredientsArray})
         }));
 
     }
+
+    // TODO: handleRemoveRecipeClick(recipeIndex)
+    // Called with the id of the children component
+    // this.setState((prevState, props) = ({
+    //     recipes: prevState.recipes.slice().splice(recipeIndex,1)
+
+    // TODO: handleEdit
+    // Change the modal to "Edit Modal"
+    // An id should be passed to the modal. Add recipe -> recipes.length+1 ; Edit -> the id of the recipe
+    // Change handleAddRecipeSubmitClick to handleRecipeSubmitClick
+    // It should add or edit depending on the id compared to the recipes.length
 
     handleRemoveClick() {
         this.setState((prevState, props) => ({
