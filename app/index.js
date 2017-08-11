@@ -14,6 +14,7 @@ class Recipe extends React.Component {
         };
 
         this.handleClickOpenClose = this.handleClickOpenClose.bind(this);
+        this.handleDeleteRecipe = this.handleDeleteRecipe.bind(this);
     }
 
     handleClickOpenClose(event) {
@@ -24,40 +25,60 @@ class Recipe extends React.Component {
         );
     }
 
+    handleDeleteRecipe() {
+        this.props.onDeleteRecipe(this.props.index);
+    }
+
     render() {
-        const listIngredients = this.props.ingredients.map(function(ingredient, index) {
+        const listIngredients = this.props.ingredients.map((ingredient, index) => {
             return (
-                <li className="list-group-item">{ingredient}</li>
+                <li key={index} className="list-group-item">{ingredient}</li>
             );
         });
 
         return (
-                <div className="panel panel-success">
-                    <div className="panel-heading">
-                        <h4 className="panel-title">
-                            <Button onClick={this.handleClickOpenClose}>{this.props.name}</Button>
-                        </h4>
-                    </div>
-                    <Panel collapsible expanded={this.state.open}>
-                        <div className="panel-body">
-                            <ul className="list-group">
-                                {listIngredients}
-                            </ul>
-                            <button className="btn btn-danger">Delete</button>
-                            <button className="btn btn-default">Edit</button>
-                        </div>
-                    </Panel>
+            <div className="panel panel-success">
+                <div className="panel-heading">
+                    <h4 className="panel-title">
+                        <Button onClick={this.handleClickOpenClose}>{this.props.name}</Button>
+                    </h4>
                 </div>
+                <Panel collapsible expanded={this.state.open}>
+                    <div className="panel-body">
+                        <ul className="list-group">
+                            {listIngredients}
+                        </ul>
+                        <button className="btn btn-danger" onClick={this.handleDeleteRecipe}>Delete</button>
+                        <button className="btn btn-default">Edit</button>
+                    </div>
+                </Panel>
+            </div>
         );
     }
 }
 
 
 class RecipeList extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleDeleteRecipe = this.handleDeleteRecipe.bind(this);
+    }
+
+    handleDeleteRecipe(recipeIndex) {
+        this.props.onDeleteRecipe(recipeIndex);
+    }
+
     render() {
-        const listRecipes = this.props.recipes.map(function(recipe, index) {
+        const listRecipes = this.props.recipes.map((recipe, index) => {
             return (
-                <Recipe key={index} name={recipe.name} ingredients={recipe.ingredients}/>
+                <Recipe
+                    key={index}
+                    index={index}
+                    name={recipe.name}
+                    ingredients={recipe.ingredients}
+                    onDeleteRecipe={this.handleDeleteRecipe}
+                />
             );
         });
 
@@ -112,7 +133,7 @@ class RecipeModal extends React.Component {
                             <FormControl
                                 name="ingredientsString"
                                 type="text"
-                                placeholder="Ingredient 1, Ingredient 2, Ingredient 3"
+                                placeholder="Ingredient 1,Ingredient 2,Ingredient 3"
                                 onChange={this.handleChange}
                             />
                         </FormGroup>
@@ -129,7 +150,7 @@ class RecipeModal extends React.Component {
 
 
 class App extends React.Component {
-    constructor(props) { // React official documentation recommends to always pass props to the constructor (why?)
+    constructor(props) {
         super(props);
         this.state = {
             // TODO: Idea: Add a state for new recipe, that is updated by a function passed to check the field
@@ -148,12 +169,8 @@ class App extends React.Component {
         this.handleClosingModal = this.handleClosingModal.bind(this);
         this.handleFormControlChange = this.handleFormControlChange.bind(this);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
+        this.handleDeleteRecipe = this.handleDeleteRecipe.bind(this);
     }
-
-    // TODO: handleRemoveRecipeClick(recipeIndex)
-    // Called with the id of the children component
-    // this.setState((prevState, props) = ({
-    //     recipes: prevState.recipes.slice().splice(recipeIndex,1)
 
     // TODO: handleEdit
 
@@ -184,6 +201,18 @@ class App extends React.Component {
         }));
     }
 
+    handleDeleteRecipe(recipeIndex) {
+        let newArray = this.state.recipes.slice();
+        newArray.splice(recipeIndex,1);
+
+        this.setState((prevState, props) => {
+            let newArray = prevState.recipes.slice();
+            newArray.splice(recipeIndex,1);
+            return {recipes: newArray}
+        });
+
+    }
+
     render() {
         localStorage.setItem('recipes', JSON.stringify(this.state.recipes));
 
@@ -191,7 +220,10 @@ class App extends React.Component {
             <div className="container">
                 <h1>WIP: Recipe box</h1>
                 <div className="well panel panel-default">
-                    <RecipeList recipes={this.state.recipes} />
+                    <RecipeList
+                        recipes={this.state.recipes}
+                        onDeleteRecipe={this.handleDeleteRecipe}
+                    />
                 </div>
                 <button onClick={this.handleAddClick} className="btn btn-primary">Add recipe</button>
                 <button onClick={this.handleRemoveClick} className="btn btn-primary">Remove recipe</button>
