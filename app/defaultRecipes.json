@@ -1,10 +1,10 @@
 [
   {
-    "name": "recipeAB",
-    "ingredients": ["a","b","c"]
+    "name": "Friend",
+    "ingredients": ["Trust","Share","Time together"]
   },
   {
-    "name": "recipeB",
-    "ingredients": ["d","e","f"]
+    "name": "Job",
+    "ingredients": ["Time working","Skills","Luck"]
   }
 ]
